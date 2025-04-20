@@ -1,1 +1,0 @@
-// Import handlers for SVG and image

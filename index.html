@@ -1,1 +1,635 @@
-Cindara 3D main HTML file content goes here...
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cindara 3D</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #E6EFFF 0%, #D6C4FF 100%);
+            color: #1A1E2E;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            transition: background 0.3s ease, color 0.3s ease;
+            overflow-x: hidden;
+        }
+        body.dark {
+            background: linear-gradient(135deg, #1A1E2E 0%, #2A2D4A 100%);
+            color: #E0E0E0;
+        }
+        h1 {
+            font-size: 2.25rem;
+            text-align: center;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        .section {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: background 0.3s ease;
+            overflow: hidden;
+        }
+        body.dark .section {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .section h2 {
+            font-size: 1.35rem;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+        button, select, input[type="checkbox"] + label, input[type="number"] {
+            background: linear-gradient(135deg, #A084CA, # Ditto;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(107, 115, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+        }
+        body.dark button,
+        body.dark select,
+        body.dark input[type="checkbox"] + label,
+        body.dark input[type="number"] {
+            background: linear-gradient(135deg, #8A6CB4, #5A6373);
+            box-shadow: 0 4px 8px rgba(107, 115, 255, 0.2);
+        }
+        button:hover, select:hover {
+            background: linear-gradient(135deg, #B294DA, #7B829E);
+            transform: scale(1.05);
+            filter: brightness(1.15);
+        }
+        body.dark button:hover,
+        body.dark select:hover {
+            background: linear-gradient(135deg, #9A7CC4, #6A7383);
+            filter: brightness(1.05);
+        }
+        button.active, button:active {
+            background: linear-gradient(135deg, #8A6CB4, #5A6373);
+            transform: scale(1);
+        }
+        body.dark button.active,
+        body.dark button:active {
+            background: linear-gradient(135deg, #7A5CA4, #4A5363);
+        }
+        button:disabled, select:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        input[type="checkbox"] {
+            display: none;
+        }
+        input[type="checkbox"] + label {
+            padding: 8px 12px;
+        }
+        input[type="checkbox"]:checked + label {
+            background: linear-gradient(135deg, #8A6CB4, #5A6373);
+        }
+        body.dark input[type="checkbox"]:checked + label {
+            background: linear-gradient(135deg, #7A5CA4, #4A5363);
+        }
+        input[type="number"] {
+            width: 70px;
+        }
+        select {
+            background: linear-gradient(135deg, #A084CA, #6B728E);
+        }
+        body.dark select {
+            background: linear-gradient(135deg, #8A6CB4, #5A6373);
+        }
+        .canvas-container {
+            flex: 1;
+            background: linear-gradient(135deg, rgba(160, 132, 202, 0.2), rgba(107, 114, 142, 0.3));
+            border-radius: 8px;
+            min-height: 400px;
+            position: relative;
+        }
+        body.dark .canvas-container {
+            background: linear-gradient(135deg, rgba(138, 108, 180, 0.2), rgba(90, 99, 115, 0.3));
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 1.75rem;
+            }
+            .section {
+                padding: 20px;
+            }
+            button, select, input[type="checkbox"] + label, input[type="number"] {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+                min-height: 40px;
+            }
+            .canvas-container {
+                min-height: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Cindara 3D</h1>
+
+    <!-- Toolbar Section -->
+    <div class="section" id="toolbar">
+        <h2>Toolbar</h2>
+        <div class="controls">
+            <button id="tool-select" class="active">Select</button>
+            <button id="tool-move">Move</button>
+            <button id="tool-rotate">Rotate</button>
+            <button id="tool-scale">Scale</button>
+            <button id="speed-fast" class="active">Fast</button>
+            <button id="speed-final">Final</button>
+            <select id="theme">
+                <option value="default">Default</option>
+                <option value="ocean">Ocean</option>
+                <option value="sunset">Sunset</option>
+            </select>
+            <button id="dark-mode">Dark Mode: Off</button>
+        </div>
+    </div>
+
+    <!-- Scene Section -->
+    <div class="section" id="scene">
+        <h2>Scene</h2>
+        <div class="controls">
+            <button id="reset-view">Reset View</button>
+            <input type="checkbox" id="toggle-grid">
+            <label for="toggle-grid">Toggle Grid</label>
+            <input type="number" id="duration" min="1" value="1">
+            <select id="fps">
+                <option value="30">30 FPS</option>
+                <option value="60">60 FPS</option>
+                <option value="120">120 FPS</option>
+            </select>
+        </div>
+        <div class="canvas-container">
+            <canvas id="three-canvas"></canvas>
+        </div>
+    </div>
+
+    <!-- Timeline Section -->
+    <div class="section" id="timeline">
+        <h2>Timeline</h2>
+        <div class="controls">
+            <button id="play-pause">Play</button>
+            <button id="stop">Stop</button>
+        </div>
+    </div>
+
+    <!-- State Section -->
+    <div class="section" id="state">
+        <h2>State</h2>
+        <div class="controls">
+            <button id="save">Save</button>
+            <button id="load">Load</button>
+        </div>
+    </div>
+
+    <!-- Export Section -->
+    <div class="section" id="export">
+        <h2>Export</h2>
+        <div class="controls">
+            <button id="export-json">JSON</button>
+            <button id="export-embed">Embed</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.134.0/examples/jpeg/controls/OrbitControls.js"></script>
+    <script src="https://unpkg.com/three@0.134.0/examples/jpeg/controls/TransformControls.js"></script>
+    <script>
+        // State Management
+        let tool = 'select';
+        let speed = 'fast';
+        let theme = 'default';
+        let isDarkMode = false;
+        let isGridOn = false;
+        let isPlaying = false;
+        let fps = 60;
+        let duration = 1;
+        let selectedObjects = [];
+
+        // Scene Setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas'), antialias: true });
+        renderer.setSize(window.innerWidth - 40, 400);
+        camera.position.set(0, 2, 5);
+        camera.lookAt(0, 0, 0);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(directionalLight);
+
+        // Grid
+        const gridHelper = new THREE.GridHelper(10, 10, 0x888888, 0x444444);
+        gridHelper.visible = false;
+        scene.add(gridHelper);
+
+        // Controls
+        const orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+        orbitControls.enableDamping = true;
+        orbitControls.enableZoom = true;
+        orbitControls.enablePan = true;
+
+        const transformControls = new THREE.TransformControls(camera, renderer.domElement);
+        scene.add(transformControls);
+
+        // Object
+        const geometry = new THREE.BoxGeometry();
+        const material = new THREE.MeshPhongMaterial({ color: 0xA084CA });
+        const cube = new THREE.Mesh(geometry, material);
+        scene.add(cube);
+
+        const outlineMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.BackSide });
+        const outlineMesh = new THREE.Mesh(geometry, outlineMaterial);
+        outlineMesh.scale.set(1.05, 1.05, 1.05);
+        cube.outline = outlineMesh;
+
+        // Raycaster for Selection
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        // Animation
+        let time = 0;
+        let lastFrame = 0;
+        function animate(currentTime) {
+            const delta = (currentTime - lastFrame) / 1000;
+            lastFrame = currentTime;
+
+            if (isPlaying) {
+                time += delta * (speed === 'fast' ? 2 : 1);
+                cube.rotation.x = Math.sin(time) * 0.5;
+                cube.rotation.y = Math.cos(time) * 0.5;
+                if (time > duration) {
+                    stopAnimation();
+                }
+            }
+
+            orbitControls.update();
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+        animate(0);
+
+        // Resize Handler
+        window.addEventListener('resize', () => {
+            renderer.setSize(window.innerWidth - 40, 400);
+            camera.aspect = (window.innerWidth - 40) / 400;
+            camera.updateProjectionMatrix();
+        });
+
+        // DOM Elements
+        const toolSelect = document.getElementById('tool-select');
+        const toolMove = document.getElementById('tool-move');
+        const toolRotate = document.getElementById('tool-rotate');
+        const toolScale = document.getElementById('tool-scale');
+        const speedFast = document.getElementById('speed-fast');
+        const speedFinal = document.getElementById('speed-final');
+        const themeSelect = document.getElementById('theme');
+        const darkModeBtn = document.getElementById('dark-mode');
+        const resetViewBtn = document.getElementById('reset-view');
+        const toggleGrid = document.getElementById('toggle-grid');
+        const durationInput = document.getElementById('duration');
+        const fpsSelect = document.getElementById('fps');
+        const playPauseBtn = document.getElementById('play-pause');
+        const stopBtn = document.getElementById('stop');
+        const saveBtn = document.getElementById('save');
+        const loadBtn = document.getElementById('load');
+        const exportJsonBtn = document.getElementById('export-json');
+        const exportEmbedBtn = document.getElementById('export-embed');
+        const canvas = document.getElementById('three-canvas');
+
+        // Theme Update
+        function updateTheme() {
+            const colors = {
+                default: { bg: 'linear-gradient(135deg, #E6EFFF 0%, #D6C4FF 100%)', text: '#1A1E2E' },
+                ocean: { bg: 'linear-gradient(135deg, #2A9D8F 0%, #00D4FF 100%)', text: '#fff' },
+                sunset: { bg: 'linear-gradient(135deg, #F4A261 0%, #FF6B6B 100%)', text: '#fff' }
+            };
+            if (!isDarkMode) {
+                document.body.style.background = colors[theme].bg;
+                document.body.style.color = colors[theme].text;
+            }
+        }
+
+        // Dark Mode Toggle
+        function toggleDarkMode() {
+            isDarkMode = !isDarkMode;
+            darkModeBtn.textContent = `Dark Mode: ${isDarkMode ? 'On' : 'Off'}`;
+            document.body.classList.toggle('dark', isDarkMode);
+            themeSelect.disabled = isDarkMode;
+            themeSelect.style.opacity = isDarkMode ? '0.5' : '1';
+            if (!isDarkMode) {
+                themeSelect.value = theme; // Restore theme on exit
+                updateTheme();
+            }
+        }
+
+        // Animation Controls
+        function playAnimation() {
+            isPlaying = true;
+            playPauseBtn.textContent = 'Pause';
+            playPauseBtn.classList.add('active');
+        }
+
+        function pauseAnimation() {
+            isPlaying = false;
+            playPauseBtn.textContent = 'Play';
+            playPauseBtn.classList.remove('active');
+        }
+
+        function stopAnimation() {
+            isPlaying = false;
+            time = 0;
+            cube.rotation.x = 0;
+            cube.rotation.y = 0;
+            playPauseBtn.textContent = 'Play';
+            playPauseBtn.classList.remove('active');
+        }
+
+        // Selection Logic
+        function onCanvasClick(event) {
+            const rect = canvas.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects([cube], true);
+            if (intersects.length > 0) {
+                const object = intersects[0].object;
+                if (event.shiftKey) {
+                    if (selectedObjects.includes(object)) {
+                        selectedObjects = selectedObjects.filter(o => o !== object);
+                        scene.remove(object.outline);
+                    } else {
+                        selectedObjects.push(object);
+                        scene.add(object.outline);
+                    }
+                } else {
+                    selectedObjects.forEach(obj => scene.remove(obj.outline));
+                    selectedObjects = [object];
+                    scene.add(object.outline);
+                }
+                if (tool !== 'select') {
+                    transformControls.attach(object);
+                    transformControls.setMode(tool);
+                }
+            } else {
+                selectedObjects.forEach(obj => scene.remove(obj.outline));
+                selectedObjects = [];
+                transformControls.detach();
+            }
+        }
+
+        // Event Listeners
+        toolSelect.addEventListener('click', () => {
+            tool = 'select';
+            transformControls.detach();
+            toolSelect.classList.add('active');
+            toolMove.classList.remove('active');
+            toolRotate.classList.remove('active');
+            toolScale.classList.remove('active');
+        });
+
+        toolMove.addEventListener('click', () => {
+            tool = 'move';
+            toolMove.classList.add('active');
+            toolSelect.classList.remove('active');
+            toolRotate.classList.remove('active');
+            toolScale.classList.remove('active');
+            if (selectedObjects.length > 0) {
+                transformControls.attach(selectedObjects[0]);
+                transformControls.setMode('translate');
+            }
+        });
+
+        toolRotate.addEventListener('click', () => {
+            tool = 'rotate';
+            toolRotate.classList.add('active');
+            toolSelect.classList.remove('active');
+            toolMove.classList.remove('active');
+            toolScale.classList.remove('active');
+            if (selectedObjects.length > 0) {
+                transformControls.attach(selectedObjects[0]);
+                transformControls.setMode('rotate');
+            }
+        });
+
+        toolScale.addEventListener('click', () => {
+            tool = 'scale';
+            toolScale.classList.add('active');
+            toolSelect.classList.remove('active');
+            toolMove.classList.remove('active');
+            toolRotate.classList.remove('active');
+            if (selectedObjects.length > 0) {
+                transformControls.attach(selectedObjects[0]);
+                transformControls.setMode('scale');
+            }
+        });
+
+        speedFast.addEventListener('click', () => {
+            speed = 'fast';
+            speedFast.classList.add('active');
+            speedFinal.classList.remove('active');
+        });
+
+        speedFinal.addEventListener('click', () => {
+            speed = 'final';
+            speedFinal.classList.add('active');
+            speedFast.classList.remove('active');
+        });
+
+        themeSelect.addEventListener('change', () => {
+            if (!themeSelect.disabled) {
+                theme = themeSelect.value;
+                updateTheme();
+            }
+        });
+
+        darkModeBtn.addEventListener('click', toggleDarkMode);
+
+        resetViewBtn.addEventListener('click', () => {
+            camera.position.set(0, 2, 5);
+            camera.lookAt(0, 0, 0);
+            orbitControls.reset();
+        });
+
+        toggleGrid.addEventListener('change', () => {
+            isGridOn = toggleGrid.checked;
+            gridHelper.visible = isGridOn;
+        });
+
+        durationInput.addEventListener('input', () => {
+            duration = Math.max(1, parseInt(durationInput.value));
+            durationInput.value = duration;
+        });
+
+        fpsSelect.addEventListener('change', () => {
+            fps = parseInt(fpsSelect.value);
+        });
+
+        playPauseBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                pauseAnimation();
+            } else {
+                playAnimation();
+            }
+        });
+
+        stopBtn.addEventListener('click', stopAnimation);
+
+        saveBtn.addEventListener('click', () => {
+            const state = {
+                cubePosition: cube.position.toArray(),
+                cubeRotation: cube.rotation.toArray(),
+                cubeScale: cube.scale.toArray(),
+                cameraPosition: camera.position.toArray(),
+                theme,
+                isDarkMode,
+                isGridOn,
+                speed,
+                duration,
+                fps
+            };
+            localStorage.setItem('cindara-3d-state', JSON.stringify(state));
+        });
+
+        loadBtn.addEventListener('click', () => {
+            const savedState = localStorage.getItem('cindara-3d-state');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                cube.position.fromArray(state.cubePosition);
+                cube.rotation.fromArray(state.cubeRotation);
+                cube.scale.fromArray(state.cubeScale);
+                camera.position.fromArray(state.cameraPosition);
+                theme = state.theme;
+                isDarkMode = state.isDarkMode;
+                isGridOn = state.isGridOn;
+                speed = state.speed;
+                duration = state.duration;
+                fps = state.fps;
+
+                themeSelect.value = theme;
+                updateTheme();
+                darkModeBtn.textContent = `Dark Mode: ${isDarkMode ? 'On' : 'Off'}`;
+                document.body.classList.toggle('dark', isDarkMode);
+                themeSelect.disabled = isDarkMode;
+                themeSelect.style.opacity = isDarkMode ? '0.5' : '1';
+                toggleGrid.checked = isGridOn;
+                gridHelper.visible = isGridOn;
+                speedFast.classList.toggle('active', speed === 'fast');
+                speedFinal.classList.toggle('active', speed === 'final');
+                durationInput.value = duration;
+                fpsSelect.value = fps;
+            }
+        });
+
+        exportJsonBtn.addEventListener('click', () => {
+            const state = {
+                cubePosition: cube.position.toArray(),
+                cubeRotation: cube.rotation.toArray(),
+                cubeScale: cube.scale.toArray()
+            };
+            const blob = new Blob([JSON.stringify(state)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'cindara-3d.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        exportEmbedBtn.addEventListener('click', () => {
+            const embedCode = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cindara 3D Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <style>
+        body { margin: 0; background: #000; }
+        canvas { width: 100%; height: 100vh; }
+    </style>
+</head>
+<body>
+    <canvas id="embed-canvas"></canvas>
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('embed-canvas') });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.position.set(0, 2, 5);
+        camera.lookAt(0, 0, 0);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(directionalLight);
+        const geometry = new THREE.BoxGeometry();
+        const material = new THREE.MeshPhongMaterial({ color: 0xA084CA });
+        const cube = new THREE.Mesh(geometry, material);
+        cube.position.set(${cube.position.toArray().join(',')});
+        cube.rotation.set(${cube.rotation.toArray().join(',')});
+        cube.scale.set(${cube.scale.toArray().join(',')});
+        scene.add(cube);
+        function animate() {
+            requestAnimationFrame(animate);
+            cube.rotation.x += 0.01;
+            cube.rotation.y += 0.01;
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
+</body>
+</html>`;
+            const blob = new Blob([embedCode], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'cindara-3d-embed.html';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        canvas.addEventListener('click', onCanvasClick);
+    </script>
+</body>
+</html>

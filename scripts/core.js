@@ -1,1 +1,0 @@
-// Core logic for Cindara 3D

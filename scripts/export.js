@@ -1,1 +1,0 @@
-// Export handlers: glTF, STL, OBJ, JSON

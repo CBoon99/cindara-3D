@@ -1,1 +1,0 @@
-// Scene setup for Cindara 3D
