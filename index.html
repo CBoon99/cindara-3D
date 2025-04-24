@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cindara 3D</title>
+    <meta name="description" content="Doppleit 3D – Create, animate, and export in an immersive web-based 3D environment.">
+    <meta name="keywords" content="3D, WebGL, Three.js, animation, design, modeling, Doppleit">
+    <title>Doppleit 3D</title>
+    <link rel="icon" type="image/png" href="/Assets/doppleit-3d-logo.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         * {
@@ -27,11 +30,123 @@
             background: linear-gradient(135deg, #1A1E2E 0%, #2A2D4A 100%);
             color: #E0E0E0;
         }
+        .logo-container {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        #logo {
+            max-width: 300px;
+            width: 100%;
+            animation: glitch 0.8s ease-in-out;
+            box-shadow: 0 0 8px rgba(160, 132, 202, 0.5);
+        }
         h1 {
             font-size: 2.25rem;
             text-align: center;
             margin-bottom: 12px;
             font-weight: 600;
+            position: absolute;
+            clip: rect(1px, 1px, 1px, 1px);
+            height: 1px;
+            width: 1px;
+            overflow: hidden;
+        }
+        @keyframes glitch {
+            0% { opacity: 1; transform: translateX(0); filter: hue-rotate(0deg); }
+            10% { opacity: 0.7; transform: translateX(-2px); filter: hue-rotate(20deg); }
+            20% { opacity: 1; transform: translateX(2px); filter: hue-rotate(-20deg); }
+            30% { opacity: 0.6; transform: translateX(-1px); filter: hue-rotate(10deg); }
+            40% { opacity: 1; transform: translateX(1px); }
+            60% { opacity: 0.8; transform: translateX(-1px); filter: hue-rotate(-10deg); }
+            80% { opacity: 1; transform: translateX(0); filter: hue-rotate(0deg); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            padding: 12px 24px;
+            color: #1A1E2E;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: opacity 0.3s ease;
+        }
+        body.dark #loading {
+            background: rgba(255, 255, 255, 0.1);
+            color: #E0E0E0;
+        }
+        #error-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 99, 71, 0.9);
+            border-radius: 8px;
+            padding: 12px 24px;
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        #error-message.show {
+            opacity: 1;
+        }
+        main {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        aside {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: background 0.3s ease;
+        }
+        body.dark aside {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        aside h2 {
+            font-size: 1.35rem;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+        aside ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        aside li {
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        aside li:hover {
+            background: rgba(160, 132, 202, 0.3);
+        }
+        body.dark aside li:hover {
+            background: rgba(138, 108, 180, 0.3);
+        }
+        aside li.selected {
+            background: rgba(160, 132, 202, 0.5);
+        }
+        body.dark aside li.selected {
+            background: rgba(138, 108, 180, 0.5);
+        }
+        aside li input {
+            background: transparent;
+            border: none;
+            color: inherit;
+            font-size: 0.9rem;
+            width: 100%;
         }
         .section {
             background: rgba(255, 255, 255, 0.15);
@@ -41,7 +156,6 @@
             padding: 20px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             transition: background 0.3s ease;
-            overflow: hidden;
         }
         body.dark .section {
             background: rgba(255, 255, 255, 0.1);
@@ -58,8 +172,8 @@
             gap: 12px;
             align-items: center;
         }
-        button, select, input[type="checkbox"] + label, input[type="number"] {
-            background: linear-gradient(135deg, #A084CA, # Ditto;
+        button, select, input[type="checkbox"] + label, input[type="number"], input[type="color"] {
+            background: linear-gradient(135deg, #A084CA, #6B728E);
             border: none;
             border-radius: 8px;
             padding: 8px 12px;
@@ -77,27 +191,33 @@
         body.dark button,
         body.dark select,
         body.dark input[type="checkbox"] + label,
-        body.dark input[type="number"] {
+        body.dark input[type="number"],
+        body.dark input[type="color"] {
             background: linear-gradient(135deg, #8A6CB4, #5A6373);
             box-shadow: 0 4px 8px rgba(107, 115, 255, 0.2);
         }
-        button:hover, select:hover {
+        button:hover, select:hover, input[type="color"]:hover {
             background: linear-gradient(135deg, #B294DA, #7B829E);
             transform: scale(1.05);
             filter: brightness(1.15);
+            transition: all 0.3s ease;
         }
         body.dark button:hover,
-        body.dark select:hover {
+        body.dark select:hover,
+        body.dark input[type="color"]:hover {
             background: linear-gradient(135deg, #9A7CC4, #6A7383);
             filter: brightness(1.05);
+            transition: all 0.3s ease;
         }
         button.active, button:active {
             background: linear-gradient(135deg, #8A6CB4, #5A6373);
             transform: scale(1);
+            transition: all 0.3s ease;
         }
         body.dark button.active,
         body.dark button:active {
             background: linear-gradient(135deg, #7A5CA4, #4A5363);
+            transition: all 0.3s ease;
         }
         button:disabled, select:disabled {
             opacity: 0.5;
@@ -112,18 +232,27 @@
         }
         input[type="checkbox"]:checked + label {
             background: linear-gradient(135deg, #8A6CB4, #5A6373);
+            transition: all 0.3s ease;
         }
         body.dark input[type="checkbox"]:checked + label {
             background: linear-gradient(135deg, #7A5CA4, #4A5363);
+            transition: all 0.3s ease;
         }
         input[type="number"] {
             width: 70px;
         }
+        input[type="color"] {
+            padding: 4px;
+            width: 50px;
+            height: 40px;
+        }
         select {
             background: linear-gradient(135deg, #A084CA, #6B728E);
+            transition: all 0.3s ease;
         }
         body.dark select {
             background: linear-gradient(135deg, #8A6CB4, #5A6373);
+            transition: all 0.3s ease;
         }
         .canvas-container {
             flex: 1;
@@ -131,26 +260,83 @@
             border-radius: 8px;
             min-height: 400px;
             position: relative;
+            transition: background 0.3s ease;
         }
         body.dark .canvas-container {
             background: linear-gradient(135deg, rgba(138, 108, 180, 0.2), rgba(90, 99, 115, 0.3));
+            transition: background 0.3s ease;
         }
         canvas {
             width: 100%;
             height: 100%;
             border-radius: 8px;
         }
+        #timeline-editor {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .keyframe-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .keyframe-list {
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            transition: background 0.3s ease;
+        }
+        body.dark .keyframe-list {
+            background: rgba(255, 255, 255, 0.05);
+            transition: background 0.3s ease;
+        }
+        .keyframe-item {
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .keyframe-item:hover {
+            background: rgba(160, 132, 202, 0.3);
+            transition: background 0.3s ease;
+        }
+        body.dark .keyframe-item:hover {
+            background: rgba(138, 108, 180, 0.3);
+            transition: background 0.3s ease;
+        }
+        .keyframe-item.selected {
+            background: rgba(160, 132, 202, 0.5);
+            transition: background 0.3s ease;
+        }
+        body.dark .keyframe-item.selected {
+            background: rgba(138, 108, 180, 0.5);
+            transition: background 0.3s ease;
+        }
+        .version-footer {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 12px;
+            transition: color 0.3s ease;
+        }
+        body.dark .version-footer {
+            color: #aaa;
+            transition: color 0.3s ease;
+        }
         @media (max-width: 768px) {
             body {
                 padding: 20px;
             }
-            h1 {
-                font-size: 1.75rem;
+            #logo {
+                max-width: 200px;
             }
-            .section {
+            .section, aside {
                 padding: 20px;
             }
-            button, select, input[type="checkbox"] + label, input[type="number"] {
+            button, select, input[type="checkbox"] + label, input[type="number"], input[type="color"] {
                 padding: 8px 12px;
                 font-size: 0.85rem;
                 min-height: 40px;
@@ -159,80 +345,175 @@
                 min-height: 350px;
             }
         }
+        @media (max-width: 480px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            button, select, input[type="checkbox"] + label, input[type="number"], input[type="color"] {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>Cindara 3D</h1>
-
-    <!-- Toolbar Section -->
-    <div class="section" id="toolbar">
-        <h2>Toolbar</h2>
-        <div class="controls">
-            <button id="tool-select" class="active">Select</button>
-            <button id="tool-move">Move</button>
-            <button id="tool-rotate">Rotate</button>
-            <button id="tool-scale">Scale</button>
-            <button id="speed-fast" class="active">Fast</button>
-            <button id="speed-final">Final</button>
-            <select id="theme">
-                <option value="default">Default</option>
-                <option value="ocean">Ocean</option>
-                <option value="sunset">Sunset</option>
-            </select>
-            <button id="dark-mode">Dark Mode: Off</button>
-        </div>
+    <div id="loading">Loading…</div>
+    <div id="error-message" aria-live="polite"></div>
+    <div class="logo-container">
+        <h1>Doppleit 3D</h1>
+        <img id="logo" src="/Assets/doppleit-3d-logo.png" alt="Doppleit 3D Logo">
     </div>
 
-    <!-- Scene Section -->
-    <div class="section" id="scene">
-        <h2>Scene</h2>
-        <div class="controls">
-            <button id="reset-view">Reset View</button>
-            <input type="checkbox" id="toggle-grid">
-            <label for="toggle-grid">Toggle Grid</label>
-            <input type="number" id="duration" min="1" value="1">
-            <select id="fps">
-                <option value="30">30 FPS</option>
-                <option value="60">60 FPS</option>
-                <option value="120">120 FPS</option>
-            </select>
-        </div>
-        <div class="canvas-container">
-            <canvas id="three-canvas"></canvas>
-        </div>
-    </div>
+    <main>
+        <!-- Object Outliner -->
+        <aside id="outliner">
+            <h2>Objects</h2>
+            <ul id="object-list"></ul>
+        </aside>
 
-    <!-- Timeline Section -->
-    <div class="section" id="timeline">
-        <h2>Timeline</h2>
-        <div class="controls">
-            <button id="play-pause">Play</button>
-            <button id="stop">Stop</button>
-        </div>
-    </div>
+        <!-- Inspector Panel -->
+        <aside id="inspector">
+            <h2>Inspector</h2>
+            <div id="inspector-content" class="controls">
+                <p>Select an object to edit its properties.</p>
+            </div>
+        </aside>
 
-    <!-- State Section -->
-    <div class="section" id="state">
-        <h2>State</h2>
-        <div class="controls">
-            <button id="save">Save</button>
-            <button id="load">Load</button>
+        <!-- Toolbar Section -->
+        <div class="section" id="toolbar" role="toolbar">
+            <h2>Toolbar</h2>
+            <div class="controls">
+                <button id="doppleit-tool-select" class="active" title="Select 3D Object (Shift+Click to multi-select)" role="button">Select Object</button>
+                <button id="doppleit-tool-translate" title="Translate 3D Object (G)" role="button">Translate</button>
+                <button id="doppleit-tool-rotate" title="Rotate 3D Object (R)" role="button">Rotate Object</button>
+                <button id="doppleit-tool-scale" title="Scale 3D Object (S)" role="button">Scale Object</button>
+                <button id="doppleit-speed-fast" class="active" title="Fast Animation Speed" role="button">Fast</button>
+                <button id="doppleit-speed-final" title="Final Animation Speed" role="button">Final</button>
+                <select id="doppleit-theme" title="Select Theme" aria-label="Select Theme">
+                    <option value="default">Default</option>
+                    <option value="ocean">Ocean</option>
+                    <option value="sunset">Sunset</option>
+                </select>
+                <button id="doppleit-dark-mode" title="Toggle Dark Mode" role="button">Dark Mode: Off</button>
+            </div>
         </div>
-    </div>
 
-    <!-- Export Section -->
-    <div class="section" id="export">
-        <h2>Export</h2>
-        <div class="controls">
-            <button id="export-json">JSON</button>
-            <button id="export-embed">Embed</button>
+        <!-- Prefab Library -->
+        <div class="section" id="prefab-library">
+            <h2>Prefabs</h2>
+            <div class="controls">
+                <button id="add-cube" title="Add Cube to Scene" role="button">Cube</button>
+                <button id="add-sphere" title="Add Sphere to Scene" role="button">Sphere</button>
+                <button id="add-cone" title="Add Cone to Scene" role="button">Cone</button>
+                <button id="add-torus" title="Add Torus to Scene" role="button">Torus</button>
+                <button id="add-plane" title="Add Plane to Scene" role="button">Plane</button>
+            </div>
         </div>
-    </div>
+
+        <!-- Scene Section -->
+        <div class="section" id="scene">
+            <h2>Scene</h2>
+            <div class="controls">
+                <button id="doppleit-reset-view" title="Reset Camera View" role="button">Reset View</button>
+                <button id="doppleit-clear-scene" title="Clear Scene" role="button">Clear Scene</button>
+                <input type="checkbox" id="doppleit-toggle-grid">
+                <label for="doppleit-toggle-grid" title="Toggle Grid Visibility" aria-label="Toggle Grid Visibility">Toggle Grid</label>
+                <input type="number" id="doppleit-duration" min="1" value="1" title="Animation Duration (seconds)" aria-label="Animation Duration">
+                <select id="doppleit-fps" title="Frames Per Second" aria-label="Frames Per Second">
+                    <option value="30">30 FPS</option>
+                    <option value="60">60 FPS</option>
+                    <option value="120">120 FPS</option>
+                </select>
+            </div>
+            <div class="canvas-container" role="application" aria-label="3D interactive canvas">
+                <canvas id="doppleit-three-canvas"></canvas>
+            </div>
+        </div>
+
+        <!-- Scene Settings -->
+        <div class="section" id="scene-settings">
+            <h2>Scene Settings</h2>
+            <div class="controls">
+                <input type="color" id="background-color" value="#000000" title="Set Background Color" aria-label="Set Background Color">
+                <input type="number" id="camera-target-x" value="0" step="0.1" title="Camera Target X" aria-label="Camera Target X">
+                <input type="number" id="camera-target-y" value="0" step="0.1" title="Camera Target Y" aria-label="Camera Target Y">
+                <input type="number" id="camera-target-z" value="0" step="0.1" title="Camera Target Z" aria-label="Camera Target Z">
+                <button id="reset-scene" title="Reset Scene to Default" role="button">Reset Scene</button>
+            </div>
+        </div>
+
+        <!-- Material Editor -->
+        <div class="section" id="material-editor">
+            <h2>Material Editor</h2>
+            <div class="controls">
+                <input type="color" id="material-color" value="#A084CA" title="Set Material Color" aria-label="Set Material Color">
+                <input type="checkbox" id="material-wireframe">
+                <label for="material-wireframe" title="Toggle Wireframe Mode" aria-label="Toggle Wireframe Mode">Wireframe</label>
+                <input type="number" id="material-opacity" min="0" max="1" step="0.1" value="1" title="Set Material Opacity" aria-label="Set Material Opacity">
+            </div>
+        </div>
+
+        <!-- Lighting Controls -->
+        <div class="section" id="lighting-controls">
+            <h2>Lighting</h2>
+            <div class="controls">
+                <h3>Ambient Light</h3>
+                <input type="color" id="ambient-color" value="#ffffff" title="Ambient Light Color" aria-label="Ambient Light Color">
+                <input type="number" id="ambient-intensity" min="0" max="1" step="0.1" value="0.5" title="Ambient Light Intensity" aria-label="Ambient Light Intensity">
+                <h3>Directional Light</h3>
+                <input type="color" id="directional-color" value="#ffffff" title="Directional Light Color" aria-label="Directional Light Color">
+                <input type="number" id="directional-intensity" min="0" max="1" step="0.1" value="0.5" title="Directional Light Intensity" aria-label="Directional Light Intensity">
+                <input type="number" id="directional-x" value="5" step="0.1" title="Directional Light X Position" aria-label="Directional Light X Position">
+                <input type="number" id="directional-y" value="5" step="0.1" title="Directional Light Y Position" aria-label="Directional Light Y Position">
+                <input type="number" id="directional-z" value="5" step="0.1" title="Directional Light Z Position" aria-label="Directional Light Z Position">
+            </div>
+        </div>
+
+        <!-- Timeline Section -->
+        <div class="section" id="timeline">
+            <h2>Timeline</h2>
+            <div class="controls">
+                <button id="doppleit-play-pause" title="Play/Pause Animation" role="button">Play</button>
+                <button id="doppleit-stop" title="Stop Animation" role="button">Stop</button>
+            </div>
+            <div id="timeline-editor">
+                <div class="keyframe-controls">
+                    <button id="add-keyframe" title="Add Keyframe for Selected Object" role="button">Add Keyframe</button>
+                    <input type="number" id="keyframe-time" min="0" step="0.1" value="0" title="Keyframe Time (seconds)" aria-label="Keyframe Time">
+                </div>
+                <div class="keyframe-list" id="keyframe-list"></div>
+            </div>
+        </div>
+
+        <!-- State Section -->
+        <div class="section" id="state">
+            <h2>State</h2>
+            <div class="controls">
+                <button id="doppleit-save" title="Save Scene State" role="button">Save</button>
+                <button id="doppleit-load" title="Load Scene State" role="button">Load</button>
+                <button id="doppleit-import-json" title="Import Scene State via Drag & Drop" role="button">Import JSON</button>
+            </div>
+        </div>
+
+        <!-- Export Section -->
+        <div class="section" id="export">
+            <h2>Export</h2>
+            <div class="controls">
+                <button id="doppleit-export-json" title="Export Scene as JSON" role="button">JSON</button>
+                <button id="doppleit-export-embed" title="Export Embeddable HTML" role="button">Embed</button>
+            </div>
+        </div>
+    </main>
+
+    <div class="version-footer">Doppleit 3D v1.0</div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-    <script src="https://unpkg.com/three@0.134.0/examples/jpeg/controls/OrbitControls.js"></script>
-    <script src="https://unpkg.com/three@0.134.0/examples/jpeg/controls/TransformControls.js"></script>
+    <script src="https://unpkg.com/three@0.134.0/examples/jsm/controls/OrbitControls.js"></script>
+    <script src="https://unpkg.com/three@0.134.0/examples/jsm/controls/TransformControls.js"></script>
     <script>
+        // Initialize console identifier
+        console.info("Doppleit 3D v1.0");
+
         // State Management
         let tool = 'select';
         let speed = 'fast';
@@ -241,16 +522,22 @@
         let isGridOn = false;
         let isPlaying = false;
         let fps = 60;
+        let targetFps = 60;
         let duration = 1;
         let selectedObjects = [];
+        let sceneObjects = [];
+        let keyframes = {};
+        let backgroundColor = new THREE.Color(0x000000);
+        let cameraTarget = new THREE.Vector3(0, 0, 0);
 
         // Scene Setup
         const scene = new THREE.Scene();
+        scene.background = backgroundColor;
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas'), antialias: true });
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('doppleit-three-canvas'), antialias: true });
         renderer.setSize(window.innerWidth - 40, 400);
         camera.position.set(0, 2, 5);
-        camera.lookAt(0, 0, 0);
+        camera.lookAt(cameraTarget);
 
         // Lighting
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
@@ -258,6 +545,13 @@
         const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
         directionalLight.position.set(5, 5, 5);
         scene.add(directionalLight);
+
+        // Light Helper
+        const lightHelperGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+        const lightHelperMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+        const lightHelper = new THREE.Mesh(lightHelperGeometry, lightHelperMaterial);
+        lightHelper.position.copy(directionalLight.position);
+        scene.add(lightHelper);
 
         // Grid
         const gridHelper = new THREE.GridHelper(10, 10, 0x888888, 0x444444);
@@ -269,36 +563,92 @@
         orbitControls.enableDamping = true;
         orbitControls.enableZoom = true;
         orbitControls.enablePan = true;
+        orbitControls.target.copy(cameraTarget);
 
         const transformControls = new THREE.TransformControls(camera, renderer.domElement);
         scene.add(transformControls);
 
-        // Object
-        const geometry = new THREE.BoxGeometry();
-        const material = new THREE.MeshPhongMaterial({ color: 0xA084CA });
-        const cube = new THREE.Mesh(geometry, material);
-        scene.add(cube);
+        // Group for Transform Controls
+        const transformGroup = new THREE.Group();
+        scene.add(transformGroup);
 
-        const outlineMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.BackSide });
-        const outlineMesh = new THREE.Mesh(geometry, outlineMaterial);
-        outlineMesh.scale.set(1.05, 1.05, 1.05);
-        cube.outline = outlineMesh;
+        // Initial Object
+        function createObject(geometry, name) {
+            const material = new THREE.MeshPhongMaterial({ color: 0xA084CA, transparent: true, opacity: 1 });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.name = name;
+            mesh.userData = { keyframes: [] };
+            scene.add(mesh);
+            sceneObjects.push(mesh);
+
+            const outlineMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.BackSide });
+            const outlineMesh = new THREE.Mesh(geometry, outlineMaterial);
+            outlineMesh.scale.set(1.05, 1.05, 1.05);
+            mesh.outline = outlineMesh;
+
+            updateObjectList();
+            return mesh;
+        }
+
+        const initialCube = createObject(new THREE.BoxGeometry(), "Cube_1");
 
         // Raycaster for Selection
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
 
-        // Animation
+        // Animation with FPS Control
         let time = 0;
         let lastFrame = 0;
+        let frameTime = 1000 / targetFps;
+        let lastRender = 0;
+
+        function lerp(start, end, t) {
+            return start + t * (end - start);
+        }
+
+        function lerpVector3(start, end, t) {
+            return new THREE.Vector3(
+                lerp(start.x, end.x, t),
+                lerp(start.y, end.y, t),
+                lerp(start.z, end.z, t)
+            );
+        }
+
         function animate(currentTime) {
+            const elapsed = currentTime - lastRender;
+            if (elapsed < frameTime) {
+                requestAnimationFrame(animate);
+                return;
+            }
+
             const delta = (currentTime - lastFrame) / 1000;
             lastFrame = currentTime;
+            lastRender = currentTime;
 
             if (isPlaying) {
                 time += delta * (speed === 'fast' ? 2 : 1);
-                cube.rotation.x = Math.sin(time) * 0.5;
-                cube.rotation.y = Math.cos(time) * 0.5;
+                sceneObjects.forEach(obj => {
+                    const objKeyframes = obj.userData.keyframes;
+                    if (objKeyframes.length < 2) return;
+
+                    let startFrame = null;
+                    let endFrame = null;
+                    for (let i = 0; i < objKeyframes.length - 1; i++) {
+                        if (time >= objKeyframes[i].time && time <= objKeyframes[i + 1].time) {
+                            startFrame = objKeyframes[i];
+                            endFrame = objKeyframes[i + 1];
+                            break;
+                        }
+                    }
+
+                    if (startFrame && endFrame) {
+                        const t = (time - startFrame.time) / (endFrame.time - startFrame.time);
+                        obj.position.copy(lerpVector3(startFrame.position, endFrame.position, t));
+                        obj.rotation.copy(lerpVector3(startFrame.rotation, endFrame.rotation, t));
+                        obj.scale.copy(lerpVector3(startFrame.scale, endFrame.scale, t));
+                    }
+                });
+
                 if (time > duration) {
                     stopAnimation();
                 }
@@ -308,60 +658,211 @@
             renderer.render(scene, camera);
             requestAnimationFrame(animate);
         }
-        animate(0);
+
+        // Initialize Scene and Hide Loading
+        document.addEventListener('DOMContentLoaded', () => {
+            animate(0);
+            const loadingDiv = document.getElementById('loading');
+            loadingDiv.style.opacity = '0';
+            setTimeout(() => loadingDiv.remove(), 300);
+        });
 
         // Resize Handler
         window.addEventListener('resize', () => {
-            renderer.setSize(window.innerWidth - 40, 400);
-            camera.aspect = (window.innerWidth - 40) / 400;
+            const width = window.innerWidth - 40;
+            const height = Math.max(350, window.innerHeight - 200); // Adjust height for responsiveness
+            renderer.setSize(width, height);
+            camera.aspect = width / height;
             camera.updateProjectionMatrix();
+            document.getElementById('doppleit-three-canvas').style.height = `${height}px`;
         });
 
-        // DOM Elements
-        const toolSelect = document.getElementById('tool-select');
-        const toolMove = document.getElementById('tool-move');
-        const toolRotate = document.getElementById('tool-rotate');
-        const toolScale = document.getElementById('tool-scale');
-        const speedFast = document.getElementById('speed-fast');
-        const speedFinal = document.getElementById('speed-final');
-        const themeSelect = document.getElementById('theme');
-        const darkModeBtn = document.getElementById('dark-mode');
-        const resetViewBtn = document.getElementById('reset-view');
-        const toggleGrid = document.getElementById('toggle-grid');
-        const durationInput = document.getElementById('duration');
-        const fpsSelect = document.getElementById('fps');
-        const playPauseBtn = document.getElementById('play-pause');
-        const stopBtn = document.getElementById('stop');
-        const saveBtn = document.getElementById('save');
-        const loadBtn = document.getElementById('load');
-        const exportJsonBtn = document.getElementById('export-json');
-        const exportEmbedBtn = document.getElementById('export-embed');
-        const canvas = document.getElementById('three-canvas');
+        // DOMirling
+        const toolSelect = document.getElementById('doppleit-tool-select');
+        const toolMove = document.getElementById('doppleit-tool-translate');
+        const toolRotate = document.getElementById('doppleit-tool-rotate');
+        const toolScale = document.getElementById('doppleit-tool-scale');
+        const speedFast = document.getElementById('doppleit-speed-fast');
+        const speedFinal = document.getElementById('doppleit-speed-final');
+        const themeSelect = document.getElementById('doppleit-theme');
+        const darkModeBtn = document.getElementById('doppleit-dark-mode');
+        const resetViewBtn = document.getElementById('doppleit-reset-view');
+        const clearSceneBtn = document.getElementById('doppleit-clear-scene');
+        const toggleGrid = document.getElementById('doppleit-toggle-grid');
+        const durationInput = document.getElementById('doppleit-duration');
+        const fpsSelect = document.getElementById('doppleit-fps');
+        const playPauseBtn = document.getElementById('doppleit-play-pause');
+        const stopBtn = document.getElementById('doppleit-stop');
+        const saveBtn = document.getElementById('doppleit-save');
+        const loadBtn = document.getElementById('doppleit-load');
+        const importJsonBtn = document.getElementById('doppleit-import-json');
+        const exportJsonBtn = document.getElementById('doppleit-export-json');
+        const exportEmbedBtn = document.getElementById('doppleit-export-embed');
+        const canvas = document.getElementById('doppleit-three-canvas');
+        const errorMessage = document.getElementById('error-message');
+        const objectList = document.getElementById('object-list');
+        const inspectorContent = document.getElementById('inspector-content');
+        const addCubeBtn = document.getElementById('add-cube');
+        const addSphereBtn = document.getElementById('add-sphere');
+        const addConeBtn = document.getElementById('add-cone');
+        const addTorusBtn = document.getElementById('add-torus');
+        const addPlaneBtn = document.getElementById('add-plane');
+        const materialColorInput = document.getElementById('material-color');
+        const materialWireframeInput = document.getElementById('material-wireframe');
+        const materialOpacityInput = document.getElementById('material-opacity');
+        const ambientColorInput = document.getElementById('ambient-color');
+        const ambientIntensityInput = document.getElementById('ambient-intensity');
+        const directionalColorInput = document.getElementById('directional-color');
+        const directionalIntensityInput = document.getElementById('directional-intensity');
+        const directionalXInput = document.getElementById('directional-x');
+        const directionalYInput = document.getElementById('directional-y');
+        const directionalZInput = document.getElementById('directional-z');
+        const backgroundColorInput = document.getElementById('background-color');
+        const cameraTargetXInput = document.getElementById('camera-target-x');
+        const cameraTargetYInput = document.getElementById('camera-target-y');
+        const cameraTargetZInput = document.getElementById('camera-target-z');
+        const resetSceneBtn = document.getElementById('reset-scene');
+        const addKeyframeBtn = document.getElementById('add-keyframe');
+        const keyframeTimeInput = document.getElementById('keyframe-time');
+        const keyframeList = document.getElementById('keyframe-list');
 
-        // Theme Update
+        // Object Outliner
+        function updateObjectList() {
+            objectList.innerHTML = '';
+            sceneObjects.forEach(obj => {
+                const li = document.createElement('li');
+                li.textContent = obj.name;
+                li.classList.toggle('selected', selectedObjects.includes(obj));
+                li.addEventListener('click', () => {
+                    if (!selectedObjects.includes(obj)) {
+                        selectedObjects.forEach(o => scene.remove(o.outline));
+                        selectedObjects = [obj];
+                        scene.add(obj.outline);
+                        updateObjectList();
+                        updateInspector();
+                        updateKeyframesList();
+                    }
+                });
+                li.addEventListener('dblclick', () => {
+                    const input = document.createElement('input');
+                    input.value = obj.name;
+                    input.addEventListener('blur', () => {
+                        obj.name = input.value || obj.name;
+                        updateObjectList();
+                    });
+                    input.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') input.blur();
+                    });
+                    li.innerHTML = '';
+                    li.appendChild(input);
+                    input.focus();
+                });
+                objectList.appendChild(li);
+            });
+        }
+
+        // Inspector Panel
+        function updateInspector() {
+            inspectorContent.innerHTML = '';
+            if (selectedObjects.length !== 1) {
+                inspectorContent.innerHTML = '<p>Select a single object to edit its properties.</p>';
+                return;
+            }
+
+            const obj = selectedObjects[0];
+            const props = [
+                { name: 'Position X', key: 'position.x', value: obj.position.x },
+                { name: 'Position Y', key: 'position.y', value: obj.position.y },
+                { name: 'Position Z', key: 'position.z', value: obj.position.z },
+                { name: 'Rotation X', key: 'rotation.x', value: obj.rotation.x },
+                { name: 'Rotation Y', key: 'rotation.y', value: obj.rotation.y },
+                { name: 'Rotation Z', key: 'rotation.z', value: obj.rotation.z },
+                { name: 'Scale X', key: 'scale.x', value: obj.scale.x },
+                { name: 'Scale Y', key: 'scale.y', value: obj.scale.y },
+                { name: 'Scale Z', key: 'scale.z', value: obj.scale.z }
+            ];
+
+            props.forEach(prop => {
+                const label = document.createElement('label');
+                label.textContent = prop.name;
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.step = '0.1';
+                input.value = prop.value.toFixed(2);
+                input.addEventListener('input', () => {
+                    const keys = prop.key.split('.');
+                    let target = obj;
+                    for (let i = 0; i < keys.length - 1; i++) {
+                        target = target[keys[i]];
+                    }
+                    target[keys[keys.length - 1]] = parseFloat(input.value);
+                });
+                label.appendChild(input);
+                inspectorContent.appendChild(label);
+            });
+        }
+
+        // Keyframe Management
+        function updateKeyframesList() {
+            keyframeList.innerHTML = '';
+            if (selectedObjects.length !== 1) return;
+
+            const obj = selectedObjects[0];
+            const objKeyframes = obj.userData.keyframes;
+            objKeyframes.sort((a, b) => a.time - b.time);
+            objKeyframes.forEach((kf, index) => {
+                const div = document.createElement('div');
+                div.className = 'keyframe-item';
+                div.textContent = `Time: ${kf.time.toFixed(2)}s`;
+                div.addEventListener('click', () => {
+                    time = kf.time;
+                    obj.position.copy(kf.position);
+                    obj.rotation.copy(kf.rotation);
+                    obj.scale.copy(kf.scale);
+                    updateKeyframesList();
+                });
+                keyframeList.appendChild(div);
+            });
+        }
+
+        // Theme Update with Dark Mode Variants
         function updateTheme() {
             const colors = {
-                default: { bg: 'linear-gradient(135deg, #E6EFFF 0%, #D6C4FF 100%)', text: '#1A1E2E' },
-                ocean: { bg: 'linear-gradient(135deg, #2A9D8F 0%, #00D4FF 100%)', text: '#fff' },
-                sunset: { bg: 'linear-gradient(135deg, #F4A261 0%, #FF6B6B 100%)', text: '#fff' }
+                default: {
+                    light: { bg: 'linear-gradient(135deg, #E6EFFF 0%, #D6C4FF 100%)', text: '#1A1E2E' },
+                    dark: { bg: 'linear-gradient(135deg, #1A1E2E 0%, #2A2D4A 100%)', text: '#E0E0E0' }
+                },
+                ocean: {
+                    light: { bg: 'linear-gradient(135deg, #2A9D8F 0%, #00D4FF 100%)', text: '#fff' },
+                    dark: { bg: 'linear-gradient(135deg, #1A6D5F 0%, #00A4CF 100%)', text: '#E0E0E0' }
+                },
+                sunset: {
+                    light: { bg: 'linear-gradient(135deg, #F4A261 0%, #FF6B6B 100%)', text: '#fff' },
+                    dark: { bg: 'linear-gradient(135deg, #C47231 0%, #CF3B3B 100%)', text: '#E0E0E0' }
+                }
             };
-            if (!isDarkMode) {
-                document.body.style.background = colors[theme].bg;
-                document.body.style.color = colors[theme].text;
-            }
+            const mode = isDarkMode ? 'dark' : 'light';
+            document.body.style.background = colors[theme][mode].bg;
+            document.body.style.color = colors[theme][mode].text;
+
+            // Force re-render of all elements to ensure theme applies immediately
+            const allElements = document.querySelectorAll('button, select, input[type="checkbox"] + label, input[type="number"], input[type="color"], .section, aside, .canvas-container, .keyframe-list, .keyframe-item, .version-footer');
+            allElements.forEach(el => {
+                el.style.transition = 'none';
+                el.offsetHeight; // Trigger reflow
+                el.style.transition = 'all 0.3s ease';
+            });
         }
 
         // Dark Mode Toggle
         function toggleDarkMode() {
             isDarkMode = !isDarkMode;
             darkModeBtn.textContent = `Dark Mode: ${isDarkMode ? 'On' : 'Off'}`;
+            darkModeBtn.classList.toggle('active', isDarkMode);
             document.body.classList.toggle('dark', isDarkMode);
-            themeSelect.disabled = isDarkMode;
-            themeSelect.style.opacity = isDarkMode ? '0.5' : '1';
-            if (!isDarkMode) {
-                themeSelect.value = theme; // Restore theme on exit
-                updateTheme();
-            }
+            themeSelect.disabled = false;
+            themeSelect.style.opacity = '1';
+            updateTheme();
         }
 
         // Animation Controls
@@ -380,8 +881,16 @@
         function stopAnimation() {
             isPlaying = false;
             time = 0;
-            cube.rotation.x = 0;
-            cube.rotation.y = 0;
+            sceneObjects.forEach(obj => {
+                const firstKeyframe = obj.userData.keyframes[0];
+                if (firstKeyframe) {
+                    obj.position.copy(firstKeyframe.position);
+                    obj.rotation.copy(firstKeyframe.rotation);
+                    obj.scale.copy(firstKeyframe.scale);
+                } else {
+                    obj.rotation.set(0, 0, 0);
+                }
+            });
             playPauseBtn.textContent = 'Play';
             playPauseBtn.classList.remove('active');
         }
@@ -392,7 +901,7 @@
             mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
             mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
             raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects([cube], true);
+            const intersects = raycaster.intersectObjects(sceneObjects, true);
             if (intersects.length > 0) {
                 const object = intersects[0].object;
                 if (event.shiftKey) {
@@ -408,14 +917,23 @@
                     selectedObjects = [object];
                     scene.add(object.outline);
                 }
+                updateObjectList();
+                updateInspector();
+                updateKeyframesList();
+
                 if (tool !== 'select') {
-                    transformControls.attach(object);
-                    transformControls.setMode(tool);
+                    transformGroup.clear();
+                    selectedObjects.forEach(obj => transformGroup.add(obj));
+                    transformControls.attach(transformGroup);
+                    transformControls.setMode(tool === 'move' ? 'translate' : tool);
                 }
             } else {
                 selectedObjects.forEach(obj => scene.remove(obj.outline));
                 selectedObjects = [];
                 transformControls.detach();
+                updateObjectList();
+                updateInspector();
+                updateKeyframesList();
             }
         }
 
@@ -436,7 +954,9 @@
             toolRotate.classList.remove('active');
             toolScale.classList.remove('active');
             if (selectedObjects.length > 0) {
-                transformControls.attach(selectedObjects[0]);
+                transformGroup.clear();
+                selectedObjects.forEach(obj => transformGroup.add(obj));
+                transformControls.attach(transformGroup);
                 transformControls.setMode('translate');
             }
         });
@@ -448,7 +968,9 @@
             toolMove.classList.remove('active');
             toolScale.classList.remove('active');
             if (selectedObjects.length > 0) {
-                transformControls.attach(selectedObjects[0]);
+                transformGroup.clear();
+                selectedObjects.forEach(obj => transformGroup.add(obj));
+                transformControls.attach(transformGroup);
                 transformControls.setMode('rotate');
             }
         });
@@ -460,7 +982,9 @@
             toolMove.classList.remove('active');
             toolRotate.classList.remove('active');
             if (selectedObjects.length > 0) {
-                transformControls.attach(selectedObjects[0]);
+                transformGroup.clear();
+                selectedObjects.forEach(obj => transformGroup.add(obj));
+                transformControls.attach(transformGroup);
                 transformControls.setMode('scale');
             }
         });
@@ -478,18 +1002,30 @@
         });
 
         themeSelect.addEventListener('change', () => {
-            if (!themeSelect.disabled) {
-                theme = themeSelect.value;
-                updateTheme();
-            }
+            theme = themeSelect.value;
+            updateTheme();
         });
 
         darkModeBtn.addEventListener('click', toggleDarkMode);
 
         resetViewBtn.addEventListener('click', () => {
             camera.position.set(0, 2, 5);
-            camera.lookAt(0, 0, 0);
+            camera.lookAt(cameraTarget);
             orbitControls.reset();
+        });
+
+        clearSceneBtn.addEventListener('click', () => {
+            sceneObjects.forEach(obj => {
+                scene.remove(obj);
+                scene.remove(obj.outline);
+            });
+            sceneObjects = [];
+            selectedObjects = [];
+            transformControls.detach();
+            updateObjectList();
+            updateInspector();
+            updateKeyframesList();
+            createObject(new THREE.BoxGeometry(), "Cube_1");
         });
 
         toggleGrid.addEventListener('change', () => {
@@ -503,7 +1039,8 @@
         });
 
         fpsSelect.addEventListener('change', () => {
-            fps = parseInt(fpsSelect.value);
+            targetFps = parseInt(fpsSelect.value);
+            frameTime = 1000 / targetFps;
         });
 
         playPauseBtn.addEventListener('click', () => {
@@ -516,73 +1053,414 @@
 
         stopBtn.addEventListener('click', stopAnimation);
 
+        // Prefab Library
+        addCubeBtn.addEventListener('click', () => {
+            createObject(new THREE.BoxGeometry(), `Cube_${sceneObjects.length + 1}`);
+        });
+
+        addSphereBtn.addEventListener('click', () => {
+            createObject(new THREE.SphereGeometry(0.5, 32, 32), `Sphere_${sceneObjects.length + 1}`);
+        });
+
+        addConeBtn.addEventListener('click', () => {
+            createObject(new THREE.ConeGeometry(0.5, 1, 32), `Cone_${sceneObjects.length + 1}`);
+        });
+
+        addTorusBtn.addEventListener('click', () => {
+            createObject(new THREE.TorusGeometry(0.5, 0.2, 16, 100), `Torus_${sceneObjects.length + 1}`);
+        });
+
+        addPlaneBtn.addEventListener('click', () => {
+            createObject(new THREE.PlaneGeometry(1, 1), `Plane_${sceneObjects.length + 1}`);
+        });
+
+        // Material Editor
+        materialColorInput.addEventListener('input', () => {
+            selectedObjects.forEach(obj => {
+                obj.material.color.set(materialColorInput.value);
+            });
+        });
+
+        materialWireframeInput.addEventListener('change', () => {
+            selectedObjects.forEach(obj => {
+                obj.material.wireframe = materialWireframeInput.checked;
+            });
+        });
+
+        materialOpacityInput.addEventListener('input', () => {
+            selectedObjects.forEach(obj => {
+                obj.material.opacity = parseFloat(materialOpacityInput.value);
+            });
+        });
+
+        // Lighting Controls
+        ambientColorInput.addEventListener('input', () => {
+            ambientLight.color.set(ambientColorInput.value);
+        });
+
+        ambientIntensityInput.addEventListener('input', () => {
+            ambientLight.intensity = parseFloat(ambientIntensityInput.value);
+        });
+
+        directionalColorInput.addEventListener('input', () => {
+            directionalLight.color.set(directionalColorInput.value);
+        });
+
+        directionalIntensityInput.addEventListener('input', () => {
+            directionalLight.intensity = parseFloat(directionalIntensityInput.value);
+        });
+
+        directionalXInput.addEventListener('input', () => {
+            directionalLight.position.x = parseFloat(directionalXInput.value);
+            lightHelper.position.copy(directionalLight.position);
+        });
+
+        directionalYInput.addEventListener('input', () => {
+            directionalLight.position.y = parseFloat(directionalYInput.value);
+            lightHelper.position.copy(directionalLight.position);
+        });
+
+        directionalZInput.addEventListener('input', () => {
+            directionalLight.position.z = parseFloat(directionalZInput.value);
+            lightHelper.position.copy(directionalLight.position);
+        });
+
+        // Scene Settings
+        backgroundColorInput.addEventListener('input', () => {
+            backgroundColor.set(backgroundColorInput.value);
+            scene.background = backgroundColor;
+        });
+
+        cameraTargetXInput.addEventListener('input', () => {
+            cameraTarget.x = parseFloat(cameraTargetXInput.value);
+            orbitControls.target.copy(cameraTarget);
+        });
+
+        cameraTargetYInput.addEventListener('input', () => {
+            cameraTarget.y = parseFloat(cameraTargetYInput.value);
+            orbitControls.target.copy(cameraTarget);
+        });
+
+        cameraTargetZInput.addEventListener('input', () => {
+            cameraTarget.z = parseFloat(cameraTargetZInput.value);
+            orbitControls.target.copy(cameraTarget);
+        });
+
+        resetSceneBtn.addEventListener('click', () => {
+            sceneObjects.forEach(obj => {
+                scene.remove(obj);
+                scene.remove(obj.outline);
+            });
+            sceneObjects = [];
+            selectedObjects = [];
+            transformControls.detach();
+            updateObjectList();
+            updateInspector();
+            updateKeyframesList();
+
+            backgroundColor.set(0x000000);
+            scene.background = backgroundColor;
+            backgroundColorInput.value = '#000000';
+            cameraTarget.set(0, 0, 0);
+            cameraTargetXInput.value = 0;
+            cameraTargetYInput.value = 0;
+            cameraTargetZInput.value = 0;
+            orbitControls.target.copy(cameraTarget);
+            camera.position.set(0, 2, 5);
+            orbitControls.reset();
+
+            ambientLight.color.set(0xffffff);
+            ambientLight.intensity = 0.5;
+            ambientColorInput.value = '#ffffff';
+            ambientIntensityInput.value = 0.5;
+            directionalLight.color.set(0xffffff);
+            directionalLight.intensity = 0.5;
+            directionalLight.position.set(5, 5, 5);
+            lightHelper.position.copy(directionalLight.position);
+            directionalColorInput.value = '#ffffff';
+            directionalIntensityInput.value = 0.5;
+            directionalXInput.value = 5;
+            directionalYInput.value = 5;
+            directionalZInput.value = 5;
+
+            createObject(new THREE.BoxGeometry(), "Cube_1");
+        });
+
+        // Keyframe Controls
+        addKeyframeBtn.addEventListener('click', () => {
+            if (selectedObjects.length !== 1) return;
+            const obj = selectedObjects[0];
+            const time = parseFloat(keyframeTimeInput.value);
+            const keyframe = {
+                time: time,
+                position: obj.position.clone(),
+                rotation: obj.rotation.clone(),
+                scale: obj.scale.clone()
+            };
+            obj.userData.keyframes.push(keyframe);
+            updateKeyframesList();
+        });
+
+        // Save/Load
         saveBtn.addEventListener('click', () => {
             const state = {
-                cubePosition: cube.position.toArray(),
-                cubeRotation: cube.rotation.toArray(),
-                cubeScale: cube.scale.toArray(),
+                objects: sceneObjects.map(obj => ({
+                    name: obj.name,
+                    geometry: obj.geometry.type,
+                    position: obj.position.toArray(),
+                    rotation: obj.rotation.toArray(),
+                    scale: obj.scale.toArray(),
+                    material: {
+                        color: obj.material.color.getHex(),
+                        wireframe: obj.material.wireframe,
+                        opacity: obj.material.opacity
+                    },
+                    keyframes: obj.userData.keyframes
+                })),
                 cameraPosition: camera.position.toArray(),
+                cameraTarget: cameraTarget.toArray(),
+                ambientLight: {
+                    color: ambientLight.color.getHex(),
+                    intensity: ambientLight.intensity
+                },
+                directionalLight: {
+                    color: directionalLight.color.getHex(),
+                    intensity: directionalLight.intensity,
+                    position: directionalLight.position.toArray()
+                },
+                backgroundColor: backgroundColor.getHex(),
                 theme,
                 isDarkMode,
                 isGridOn,
                 speed,
                 duration,
-                fps
+                fps: targetFps
             };
-            localStorage.setItem('cindara-3d-state', JSON.stringify(state));
+            localStorage.setItem('doppleit-3d-state', JSON.stringify(state));
         });
 
         loadBtn.addEventListener('click', () => {
-            const savedState = localStorage.getItem('cindara-3d-state');
-            if (savedState) {
+            try {
+                const savedState = localStorage.getItem('doppleit-3d-state');
+                if (!savedState) {
+                    throw new Error('No saved state found.');
+                }
                 const state = JSON.parse(savedState);
-                cube.position.fromArray(state.cubePosition);
-                cube.rotation.fromArray(state.cubeRotation);
-                cube.scale.fromArray(state.cubeScale);
+                if (!state.objects) {
+                    throw new Error('Invalid saved state format.');
+                }
+
+                // Clear current scene
+                sceneObjects.forEach(obj => {
+                    scene.remove(obj);
+                    scene.remove(obj.outline);
+                });
+                sceneObjects = [];
+                selectedObjects = [];
+                transformControls.detach();
+
+                // Load objects
+                state.objects.forEach(objState => {
+                    let geometry;
+                    switch (objState.geometry) {
+                        case 'BoxGeometry':
+                            geometry = new THREE.BoxGeometry();
+                            break;
+                        case 'SphereGeometry':
+                            geometry = new THREE.SphereGeometry(0.5, 32, 32);
+                            break;
+                        case 'ConeGeometry':
+                            geometry = new THREE.ConeGeometry(0.5, 1, 32);
+                            break;
+                        case 'TorusGeometry':
+                            geometry = new THREE.TorusGeometry(0.5, 0.2, 16, 100);
+                            break;
+                        case 'PlaneGeometry':
+                            geometry = new THREE.PlaneGeometry(1, 1);
+                            break;
+                        default:
+                            geometry = new THREE.BoxGeometry();
+                    }
+                    const obj = createObject(geometry, objState.name);
+                    obj.position.fromArray(objState.position);
+                    obj.rotation.fromArray(objState.rotation);
+                    obj.scale.fromArray(objState.scale);
+                    obj.material.color.set(objState.material.color);
+                    obj.material.wireframe = objState.material.wireframe;
+                    obj.material.opacity = objState.material.opacity;
+                    obj.userData.keyframes = objState.keyframes || [];
+                });
+
                 camera.position.fromArray(state.cameraPosition);
-                theme = state.theme;
-                isDarkMode = state.isDarkMode;
-                isGridOn = state.isGridOn;
-                speed = state.speed;
-                duration = state.duration;
-                fps = state.fps;
+                cameraTarget.fromArray(state.cameraTarget);
+                orbitControls.target.copy(cameraTarget);
+                ambientLight.color.set(state.ambientLight.color);
+                ambientLight.intensity = state.ambientLight.intensity;
+                directionalLight.color.set(state.directionalLight.color);
+                directionalLight.intensity = state.directionalLight.intensity;
+                directionalLight.position.fromArray(state.directionalLight.position);
+                lightHelper.position.copy(directionalLight.position);
+                backgroundColor.set(state.backgroundColor);
+                scene.background = backgroundColor;
+
+                theme = state.theme || 'default';
+                isDarkMode = state.isDarkMode || false;
+                isGridOn = state.isGridOn || false;
+                speed = state.speed || 'fast';
+                duration = state.duration || 1;
+                targetFps = state.fps || 60;
+                frameTime = 1000 / targetFps;
 
                 themeSelect.value = theme;
                 updateTheme();
                 darkModeBtn.textContent = `Dark Mode: ${isDarkMode ? 'On' : 'Off'}`;
+                darkModeBtn.classList.toggle('active', isDarkMode);
                 document.body.classList.toggle('dark', isDarkMode);
-                themeSelect.disabled = isDarkMode;
-                themeSelect.style.opacity = isDarkMode ? '0.5' : '1';
+                themeSelect.disabled = false;
+                themeSelect.style.opacity = '1';
                 toggleGrid.checked = isGridOn;
                 gridHelper.visible = isGridOn;
                 speedFast.classList.toggle('active', speed === 'fast');
                 speedFinal.classList.toggle('active', speed === 'final');
                 durationInput.value = duration;
-                fpsSelect.value = fps;
+                fpsSelect.value = targetFps;
+                backgroundColorInput.value = `#${backgroundColor.getHexString()}`;
+                cameraTargetXInput.value = cameraTarget.x;
+                cameraTargetYInput.value = cameraTarget.y;
+                cameraTargetZInput.value = cameraTarget.z;
+                ambientColorInput.value = `#${ambientLight.color.getHexString()}`;
+                ambientIntensityInput.value = ambientLight.intensity;
+                directionalColorInput.value = `#${directionalLight.color.getHexString()}`;
+                directionalIntensityInput.value = directionalLight.intensity;
+                directionalXInput.value = directionalLight.position.x;
+                directionalYInput.value = directionalLight.position.y;
+                directionalZInput.value = directionalLight.position.z;
+
+                updateObjectList();
+                updateInspector();
+                updateKeyframesList();
+            } catch (err) {
+                errorMessage.textContent = err.message;
+                errorMessage.classList.add('show');
+                setTimeout(() => errorMessage.classList.remove('show'), 3000);
             }
+        });
+
+        importJsonBtn.addEventListener('click', () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const state = JSON.parse(event.target.result);
+                        localStorage.setItem('doppleit-3d-state', JSON.stringify(state));
+                        loadBtn.click();
+                    } catch (err) {
+                        errorMessage.textContent = 'Invalid JSON file.';
+                        errorMessage.classList.add('show');
+                        setTimeout(() => errorMessage.classList.remove('show'), 3000);
+                    }
+                };
+                reader.readAsText(file);
+            });
+            input.click();
+        });
+
+        // Drag & Drop JSON Import
+        document.addEventListener('dragover', (e) => e.preventDefault());
+        document.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (!file || !file.name.endsWith('.json')) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const state = JSON.parse(event.target.result);
+                    localStorage.setItem('doppleit-3d-state', JSON.stringify(state));
+                    loadBtn.click();
+                } catch (err) {
+                    errorMessage.textContent = 'Invalid JSON file.';
+                    errorMessage.classList.add('show');
+                    setTimeout(() => errorMessage.classList.remove('show'), 3000);
+                }
+            };
+            reader.readAsText(file);
         });
 
         exportJsonBtn.addEventListener('click', () => {
             const state = {
-                cubePosition: cube.position.toArray(),
-                cubeRotation: cube.rotation.toArray(),
-                cubeScale: cube.scale.toArray()
+                objects: sceneObjects.map(obj => ({
+                    name: obj.name,
+                    geometry: obj.geometry.type,
+                    position: obj.position.toArray(),
+                    rotation: obj.rotation.toArray(),
+                    scale: obj.scale.toArray(),
+                    material: {
+                        color: obj.material.color.getHex(),
+                        wireframe: obj.material.wireframe,
+                        opacity: obj.material.opacity
+                    },
+                    keyframes: obj.userData.keyframes
+                })),
+                cameraPosition: camera.position.toArray(),
+                cameraTarget: cameraTarget.toArray(),
+                ambientLight: {
+                    color: ambientLight.color.getHex(),
+                    intensity: ambientLight.intensity
+                },
+                directionalLight: {
+                    color: directionalLight.color.getHex(),
+                    intensity: directionalLight.intensity,
+                    position: directionalLight.position.toArray()
+                },
+                backgroundColor: backgroundColor.getHex()
             };
             const blob = new Blob([JSON.stringify(state)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'cindara-3d.json';
+            a.download = 'doppleit-3d.json';
             a.click();
             URL.revokeObjectURL(url);
         });
 
         exportEmbedBtn.addEventListener('click', () => {
+            const state = {
+                objects: sceneObjects.map(obj => ({
+                    name: obj.name,
+                    geometry: obj.geometry.type,
+                    position: obj.position.toArray(),
+                    rotation: obj.rotation.toArray(),
+                    scale: obj.scale.toArray(),
+                    material: {
+                        color: obj.material.color.getHex(),
+                        wireframe: obj.material.wireframe,
+                        opacity: obj.material.opacity
+                    }
+                })),
+                cameraPosition: camera.position.toArray(),
+                cameraTarget: cameraTarget.toArray(),
+                ambientLight: {
+                    color: ambientLight.color.getHex(),
+                    intensity: ambientLight.intensity
+                },
+                directionalLight: {
+                    color: directionalLight.color.getHex(),
+                    intensity: directionalLight.intensity,
+                    position: directionalLight.position.toArray()
+                },
+                backgroundColor: backgroundColor.getHex()
+            };
+
             const embedCode = `
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Cindara 3D Viewer</title>
+    <title>Doppleit 3D Viewer</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
     <style>
         body { margin: 0; background: #000; }
@@ -596,24 +1474,55 @@
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('embed-canvas') });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        camera.position.set(0, 2, 5);
-        camera.lookAt(0, 0, 0);
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        const state = ${JSON.stringify(state)};
+        scene.background = new THREE.Color(state.backgroundColor);
+        camera.position.set(...state.cameraPosition);
+        camera.lookAt(...state.cameraTarget);
+        const ambientLight = new THREE.AmbientLight(state.ambientLight.color, state.ambientLight.intensity);
         scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-        directionalLight.position.set(5, 5, 5);
+        const directionalLight = new THREE.DirectionalLight(state.directionalLight.color, state.directionalLight.intensity);
+        directionalLight.position.set(...state.directionalLight.position);
         scene.add(directionalLight);
-        const geometry = new THREE.BoxGeometry();
-        const material = new THREE.MeshPhongMaterial({ color: 0xA084CA });
-        const cube = new THREE.Mesh(geometry, material);
-        cube.position.set(${cube.position.toArray().join(',')});
-        cube.rotation.set(${cube.rotation.toArray().join(',')});
-        cube.scale.set(${cube.scale.toArray().join(',')});
-        scene.add(cube);
+        state.objects.forEach(objState => {
+            let geometry;
+            switch (objState.geometry) {
+                case 'BoxGeometry':
+                    geometry = new THREE.BoxGeometry();
+                    break;
+                case 'SphereGeometry':
+                    geometry = new THREE.SphereGeometry(0.5, 32, 32);
+                    break;
+                case 'ConeGeometry':
+                    geometry = new THREE.ConeGeometry(0.5, 1, 32);
+                    break;
+                case 'TorusGeometry':
+                    geometry = new THREE.TorusGeometry(0.5, 0.2, 16, 100);
+                    break;
+                case 'PlaneGeometry':
+                    geometry = new THREE.PlaneGeometry(1, 1);
+                    break;
+                default:
+                    geometry = new THREE.BoxGeometry();
+            }
+            const material = new THREE.MeshPhongMaterial({
+                color: objState.material.color,
+                wireframe: objState.material.wireframe,
+                transparent: true,
+                opacity: objState.material.opacity
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(...objState.position);
+            mesh.rotation.set(...objState.rotation);
+            mesh.scale.set(...objState.scale);
+            scene.add(mesh);
+        });
         function animate() {
             requestAnimationFrame(animate);
-            cube.rotation.x += 0.01;
-            cube.rotation.y += 0.01;
+            state.objects.forEach((_, i) => {
+                const mesh = scene.children[i + 2]; // Skip lights
+                mesh.rotation.x += 0.01;
+                mesh.rotation.y += 0.01;
+            });
             renderer.render(scene, camera);
         }
         animate();
@@ -624,12 +1533,23 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'cindara-3d-embed.html';
+            a.download = 'doppleit-3d-embed.html';
             a.click();
             URL.revokeObjectURL(url);
         });
 
         canvas.addEventListener('click', onCanvasClick);
+
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'g') toolMove.click();
+            if (e.key.toLowerCase() === 'r') toolRotate.click();
+            if (e.key.toLowerCase() === 's') toolScale.click();
+        });
+
+        // Performance: Monitor as object count grows
+        // - Continue reusing geometry/material
+        // - Consider instancing for large object counts in future
     </script>
 </body>
 </html>
